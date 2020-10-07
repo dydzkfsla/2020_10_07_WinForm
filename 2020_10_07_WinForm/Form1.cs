@@ -40,6 +40,7 @@ namespace _2020_10_07_WinForm
 
         private void 열기ToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            openFileDialog1.Filter = "Text Files(*.txt)|*.txt|All files (*.*)|*.*";
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 editingFileName = openFileDialog1.FileName;
@@ -53,7 +54,7 @@ namespace _2020_10_07_WinForm
                     dirty = false;
                     UpdateText();
                 }
-                catch(Exception err)
+                catch (Exception err)
                 {
                     MessageBox.Show(err.Message);
                 }
@@ -62,7 +63,7 @@ namespace _2020_10_07_WinForm
 
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
-            if (! dirty)
+            if (!dirty)
             {
                 dirty = true;
                 UpdateText();
@@ -90,15 +91,22 @@ namespace _2020_10_07_WinForm
         {
             if (string.IsNullOrEmpty(editingFileName))
             {
-                NewSave();
+                다른이름으로저장ToolStripMenuItem_Click(null, null);
                 return;
             }
-            using (FileStream file = new FileStream(editingFileName, FileMode.Open))
+            try
             {
-                byte[] temp = Encoding.Default.GetBytes(textBox1.Text);
-                file.Write(temp, 0, temp.Length);
+                using (StreamWriter sw = new StreamWriter(editingFileName, false, Encoding.Default))
+                {
+                    sw.Write(textBox1.Text);
+                    sw.Flush();
+                }
                 dirty = false;
-                UpdateText();
+                Update();
+            }
+            catch (Exception err)
+            {
+                MessageBox.Show(err.Message);
             }
 
 
@@ -106,23 +114,27 @@ namespace _2020_10_07_WinForm
 
         private void 다른이름으로저장ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            NewSave();
-        }
-        private void NewSave()
-        {
+
             saveFileDialog1.AddExtension = true;
             //saveFileDialog1.DefaultExt = "txt";
-            saveFileDialog1.Filter = "Text Files(*.txt)|*.txt";
+            saveFileDialog1.Filter = "Text Files(*.txt)|*.txt|All files (*.*)|*.*";
+            saveFileDialog1.FileName = null;
+
             if (saveFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 editingFileName = saveFileDialog1.FileName;
-                using (FileStream file = new FileStream(editingFileName, FileMode.Create))
-                {
-                    byte[] temp = Encoding.Default.GetBytes(textBox1.Text);
-                    file.Write(temp, 0, temp.Length);
-                    dirty = false;
-                    UpdateText();
-                }
+                NewSave(saveFileDialog1.FileName);
+            }
+        }
+
+        private void NewSave(string fileName)
+        {
+            using (FileStream file = new FileStream(fileName, FileMode.Create))
+            {
+                byte[] temp = Encoding.Default.GetBytes(textBox1.Text);
+                file.Write(temp, 0, temp.Length);
+                dirty = false;
+                UpdateText();
             }
         }
 
